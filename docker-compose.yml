@@ -7,6 +7,9 @@ services:
       - 80:80
       - 443:443
     deploy:
+      placement:
+        constraints:
+          - node.role == manager
       labels:
         - traefik.enable=true
         - traefik.docker.network=reverse-proxy
