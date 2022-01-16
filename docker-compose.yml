@@ -1,0 +1,86 @@
+version: '3.3'
+
+services:
+  traefik:
+    image: djpic/traefik
+    ports:
+      - 80:80
+      - 443:443
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=reverse-proxy
+        
+        # Universal https upgrade (use in case cli args fail to work)
+        #- traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
+        #- traefik.http.routers.http-catchall.entrypoints=web
+        #- traefik.http.routers.http-catchall.middlewares=https-upgrade@docker
+        #- traefik.http.middlewares.https-upgrade.redirectscheme.scheme=https
+        #- traefik.http.middlewares.https-upgrade.redirectscheme.permanent=true
+
+        # Init dashboard
+        - traefik.http.routers.traefik-secure.entrypoints=websecure
+        - traefik.http.routers.traefik-secure.rule=Host(`${TRAEFIK_DASHBOARD_URL}`)
+        - traefik.http.routers.traefik-secure.service=api@internal
+        
+        # Establish authentication for Traefik dashboard
+        - traefik.http.middlewares.admin-auth.basicauth.usersfile=/run/secrets/traefik_dashboard_usersfile
+        - traefik.http.routers.traefik-secure.middlewares=admin-auth
+        
+        # Define the port inside of the Docker service to use
+        - traefik.http.services.reverse-proxy.loadbalancer.server.port=8080
+        
+        # Automatic container updates
+        - com.centurylinklabs.watchtower.enable=true
+        
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/traefik:/etc/traefik
+    command:
+      - --providers.docker
+      - --providers.docker.swarmmode=true
+      
+      # Containers must specifically enable Traefik to use it
+      - --providers.docker.exposedbydefault=false
+      
+      # Define insecure entrypoint and immediately upgrade to secure
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      
+      # Define secure entrypoint with wildcart cert
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+      - --entrypoints.websecure.http.tls.certResolver=cloudflare
+      - --entrypoints.websecure.http.tls.domains[0].main=${PRIMARY_DOMAIN}
+      - --entrypoints.websecure.http.tls.domains[0].sans=*.${PRIMARY_DOMAIN}
+      
+      # Define Cloudflare DNS challenge as primary resolver
+      - --certificatesresolvers.cloudflare.acme.email=${LETSENCRYPT_EMAIL}
+      - --certificatesresolvers.cloudflare.acme.storage=/etc/traefik/acme.json
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+
+      # Enable logging and API/dashboard
+      - --accesslog
+      - --log
+      - --api
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_API_KEY=/run/secrets/cf_api_key
+    networks:
+      - reverse-proxy
+    secrets:
+      - cf_api_key
+      - traefik_dashboard_usersfile
+
+secrets:
+  cf_api_key:
+    external: true
+  traefik_dashboard_usersfile:
+    external: true
+
+networks:
+  reverse-proxy:
+    external: true
