@@ -7,6 +7,10 @@
 #   * TRAEFIK_DASHBOARD_URL - Used for viewing Traefik status. e.g. traefik.contoso.com
 #   * PRIMARY_DOMAIN - The primary domain being proxied by Traefik. I need to test if this will work as some kind of list, and then the variable name might change to something like PROXIED_DOMAINS, so keep that in mind.
 #   * CF_API_EMAIL - The email associated with the Cloudflare account used to generate the aforementioned Global API key.
+# 3. Create a network with the following options (cannot be deployed from docker-compose alone yet due to Swarm scope) named "reverse-proxy"
+#   * --scope=swarm
+#   * --driver=bridge
+#   * --attachable=true
 
 version: '3.3'
 
@@ -100,6 +104,3 @@ secrets:
 networks:
   reverse-proxy:
     external: true
-    driver: bridge
-    scope: swarm
-    attachable: true
