@@ -22,7 +22,7 @@ services:
           - node.role == manager
       labels:
         - traefik.enable=true
-        - traefik.docker.network=reverse-proxy
+        - traefik.docker.network=proxy
         
         # Universal https upgrade (use in case cli args fail to work)
         #- traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)
@@ -41,7 +41,7 @@ services:
         - traefik.http.routers.traefik-secure.middlewares=admin-auth
         
         # Define the port inside of the Docker service to use
-        - traefik.http.services.reverse-proxy.loadbalancer.server.port=8080
+        - traefik.http.services.proxy.loadbalancer.server.port=8080
         
         # Automatic container updates
         - com.centurylinklabs.watchtower.enable=true
@@ -83,7 +83,7 @@ services:
       - CF_API_EMAIL=${CF_API_EMAIL}
       - CF_API_KEY=/run/secrets/cf_api_key
     networks:
-      - reverse-proxy
+      - proxy
     secrets:
       - cf_api_key
       - traefik_dashboard_usersfile
@@ -95,5 +95,5 @@ secrets:
     external: true
 
 networks:
-  reverse-proxy:
+  proxy:
     external: true
