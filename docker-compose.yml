@@ -79,6 +79,7 @@ services:
       - --accesslog
       - --log
       - --log.level=DEBUG
+      - --log.filePath=/var/log/traefik.log
       - --api
     environment:
       - CF_API_EMAIL=${CF_API_EMAIL}
