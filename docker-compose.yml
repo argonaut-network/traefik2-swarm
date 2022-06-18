@@ -12,7 +12,7 @@ version: '3.3'
 
 services:
   traefik:
-    image: traefik
+    image: djpic/traefik
     ports:
       - 80:80
       - 443:443
@@ -79,7 +79,7 @@ services:
       # Enable logging and API/dashboard
       - --accesslog
       - --log
-      - --log.level=DEBUG
+      #- --log.level=DEBUG
       - --log.filePath=/var/log/traefik/traefik.log
       - --api
     environment:
@@ -100,3 +100,6 @@ secrets:
 networks:
   reverse-proxy:
     external: true
+    driver: bridge
+    scope: swarm
+    attachable: true
