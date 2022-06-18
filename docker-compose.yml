@@ -78,6 +78,7 @@ services:
       # Enable logging and API/dashboard
       - --accesslog
       - --log
+      - --log.level=DEBUG
       - --api
     environment:
       - CF_API_EMAIL=${CF_API_EMAIL}
