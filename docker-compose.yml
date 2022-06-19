@@ -57,7 +57,7 @@ services:
       - /var/log/traefik:/var/log/traefik
     command:
       - --providers.docker
-      - --providers.docker.swarmmode=true
+      - --providers.docker.swarmmode=false
       
       # Containers must specifically enable Traefik to use it
       - --providers.docker.exposedbydefault=false
