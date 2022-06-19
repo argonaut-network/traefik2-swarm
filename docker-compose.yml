@@ -57,10 +57,10 @@ services:
       - /var/log/traefik:/var/log/traefik
     command:
       - --providers.docker
-      - --providers.docker.swarmmode=false
+      - --providers.docker.swarmmode=true
       
       # Containers must specifically enable Traefik to use it
-      - --providers.docker.exposedbydefault=false
+      - --providers.docker.exposedbydefault=true
       
       # Define insecure entrypoint and immediately upgrade to secure
       - --entrypoints.web.address=:80
